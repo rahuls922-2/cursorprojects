@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Webura Chat Assistant</title>
+  <style>
+:root {
+  --primary: #facc15;
+  --background: #0f172a;
+  --card-bg: #1e293b;
+  --bot-bg: #334155;
+  --text-light: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+
+
+
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--background);
+  color: var(--text-light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+
+  .chat-wrapper {
+  width: 100%;
+  max-width: 720px;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
+}
+
+
+    .chat-header {
+      background-color: var(--card-bg);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+    }
+
+    .chat-header .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-header .logo img {
+      height: 32px;
+    }
+
+    .chat-header h1 {
+      font-size: 1.2rem;
+      color: var(--text-light);
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .message {
+      max-width: 85%;
+      margin: 0.5rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 1rem;
+      position: relative;
+    }
+
+    .message.user {
+      background: var(--primary);
+      align-self: flex-end;
+      color: black;
+    }
+
+    .message.bot {
+      background: #1e1e1e;
+      align-self: flex-start;
+      border: 1px solid #333;
+      color: #f4f4f4;
+    }
+
+    .copy-btn {
+      position: absolute;
+      bottom: 6px;
+      right: 10px;
+      font-size: 0.9rem;
+      color: #888;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chat-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: var(--card-bg);
+      border-top: 1px solid #333;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #000;
+      color: var(--text-light);
+      font-size: 1rem;
+    }
+
+    .chat-input button {
+      background: var(--primary);
+      color: black;
+      border: none;
+      padding: 0.75rem 1.1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #micIcon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      border-radius: 50%;
+      border: 1px solid #444;
+      color: var(--primary);
+    }
+
+    #micIcon.listening {
+      background-color: var(--primary);
+      color: black;
+      animation: pulse 1s infinite;
+    }
+
+    .go-generate-btn {
+      margin: 1rem auto 1.2rem auto;
+      text-align: center;
+    }
+
+    .go-generate-btn a {
+      display: inline-block;
+      background: var(--primary);
+      color: black;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 255, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 255, 0, 0); }
+    }
+
+    @media screen and (max-width: 600px) {
+      .chat-wrapper {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+      }
+
+      .chat-input {
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .chat-input input,
+      .chat-input button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <div class="chat-header">
+      <div class="logo">
+        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712107.png" alt="Webura Logo" />
+        <h1>Webura Chat</h1>
+      </div>
+    </div>
+
+    <div class="chat-container" id="chatMessages">
+      <div class="message bot">
+        👋 Hey! I'm <strong>Webura</strong>. Ask me anything about frontend, hosting, design, or your project ideas!
+        <button class="copy-btn" onclick="copyToClipboard(this)">📋</button>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Ask Webura something..." />
+      <button onclick="sendChat()">Send</button>
+      <button id="micIcon" onclick="voiceInput()" title="Voice Input">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2Zm-5 9a7.002 7.002 0 0 0 6.93-6H18a5.978 5.978 0 0 1-1.35 3.37A6.015 6.015 0 0 1 12 20a6.015 6.015 0 0 1-4.65-2.63A5.978 5.978 0 0 1 6 14H5.07A7.002 7.002 0 0 0 12 20Z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="go-generate-btn">
+      <a href="fake.html?generate=1">🔁 Go to Generate Section</a>
+    </div>
+  </div>
+
+  <script>
+    async function sendChat() {
+      const input = document.getElementById("chatInput");
+      const value = input.value.trim();
+      if (!value) return;
+
+      appendMessage("user", value);
+      input.value = "";
+
+      try {
+        const response = await fetch("http://localhost:4000/api/webura", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: value })
+        });
+
+        const data = await response.json();
+        typeWriterMessage("bot", data.reply || "(No response from Webura)");
+      } catch (err) {
+        typeWriterMessage("bot", "❌ Failed to reach Webura server.");
+      }
+    }
+
+    function appendMessage(role, text) {
+      const container = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.className = `message ${role}`;
+      div.textContent = text;
+
+      if (role === "bot") {
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-btn";
+        copyBtn.textContent = "📋";
+        copyBtn.onclick = function () {
+          navigator.clipboard.writeText(text);
+        };
+        div.appendChild(copyBtn);
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function typeWriterMessage(role, text) {
+      const container = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.className = `message ${role}`;
+      container.appendChild(div);
+
+      let index = 0;
+      function typeNextChar() {
+        if (index < text.length) {
+          div.textContent += text.charAt(index);
+          index++;
+          container.scrollTop = container.scrollHeight;
+          setTimeout(typeNextChar, 20);
+        } else {
+          const copyBtn = document.createElement("button");
+          copyBtn.className = "copy-btn";
+          copyBtn.textContent = "📋";
+          copyBtn.onclick = function () {
+            navigator.clipboard.writeText(text);
+          };
+          div.appendChild(copyBtn);
+        }
+      }
+      typeNextChar();
+    }
+
+    function copyToClipboard(btn) {
+      const text = btn.parentElement.textContent.trim();
+      navigator.clipboard.writeText(text.replace("📋", "").trim());
+    }
+
+    function voiceInput() {
+      const micBtn = document.getElementById("micIcon");
+
+      if ("webkitSpeechRecognition" in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onstart = function () {
+          micBtn.classList.add("listening");
+        };
+
+        recognition.onresult = function (event) {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById("chatInput").value = transcript;
+          sendChat(); // 🔥 Auto-send
+        };
+
+        recognition.onerror = function (event) {
+          alert("Voice recognition error: " + event.error);
+        };
+
+        recognition.onend = function () {
+          micBtn.classList.remove("listening");
+        };
+
+        recognition.start();
+      } else {
+        alert("Voice recognition not supported in this browser");
+      }
+    }
+
+    document.getElementById("chatInput").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") sendChat();
+    });
+  </script>
+</body>
+</html>

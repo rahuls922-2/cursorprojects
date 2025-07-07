@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weburle – AI Website Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+      .left-btni {
+  background-color: #facc15;  /* Bright Yellow */
+  color: #000;                /* Black text */
+  padding: 14px 28px;         /* Big button */
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.left-btni:hover {
+  background-color: #eab308;  /* Slightly darker yellow on hover */
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+      .left-btn {
+        background-color: #ffd700;
+        color: #000;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .left-btn:hover {
+        background-color: #e0c200;
+        transform: scale(1.05);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-color: #0f172a; /* dark background */
+        color: white;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f0f23 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        color: #ffffff;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .app-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .homepage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background: inherit;
+        transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 10;
+      }
+
+      .homepage.slide-out {
+        transform: translateX(-100%);
+      }
+
+      .main-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #ffd700 0%, #4a90e2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+      }
+
+      .main-subtitle {
+        font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+        font-weight: 300;
+        text-align: center;
+        margin-bottom: 3rem;
+        opacity: 0.9;
+        color: #e0e0e0;
+      }
+
+      .home-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 650px;
+        align-items: center;
+      }
+
+      .home-input-container {
+        display: flex;
+        gap: 1rem;
+        width: 100%;
+      }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+      .home-prompt-input {
+        flex: 1;
+        padding: 1.2rem 1.8rem;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+      }
+
+      .home-prompt-input:focus {
+        outline: none;
+        border-color: #ffd700;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .home-prompt-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .home-generate-btn {
+        padding: 1.2rem 2.5rem;
+        background: linear-gradient(135deg, #ffd700 0%, #4a90e2 100%);
+        border: none;
+        border-radius: 15px;
+        color: #000;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        white-space: nowrap;
+      }
+
+      .home-generate-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(255, 215, 0, 0.6);
+      }
+
+      .split-view {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease 0.8s, visibility 0.5s ease 0.8s;
+      }
+
+      .split-view.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .left-panel {
+        width: 35%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease 1.2s;
+      }
+
+      .left-panel.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .left-input-section {
+        margin-bottom: 2rem;
+      }
+
+      .left-prompt-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        color: #ffffff;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+      }
+
+      .left-prompt-input:focus {
+        outline: none;
+        border-color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+
+      .left-prompt-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .left-buttons {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .right-panel {
+        width: 65%;
+        background: #1a1a2e;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .tab-header {
+        display: flex;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .tab-btn {
+        padding: 1.2rem 2rem;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+        position: relative;
+      }
+
+      .tab-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .tab-btn.active {
+        color: #ffd700;
+        border-bottom-color: #ffd700;
+        background: rgba(255, 215, 0, 0.1);
+      }
+
+      .tab-content {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .tab-pane {
+        display: none;
+        height: 100%;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-pane.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .code-display {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #e0e0e0;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        height: 100%;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .preview-container {
+        background: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 2rem;
+        height: 100%;
+        overflow-y: auto;
+        color: #333;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .home-input-container {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .split-view {
+          flex-direction: column;
+        }
+
+        .left-panel {
+          width: 100%;
+          height: 40%;
+          border-right: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          justify-content: center;
+        }
+
+        .right-panel {
+          width: 100%;
+          height: 60%;
+        }
+
+        .tab-header {
+          flex-wrap: wrap;
+        }
+
+        .tab-btn {
+          padding: 1rem 1.5rem;
+          font-size: 0.9rem;
+        }
+
+        .left-buttons {
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-title {
+          font-size: 2.2rem;
+        }
+
+        .main-subtitle {
+          font-size: 1rem;
+        }
+
+        .home-prompt-input,
+        .home-generate-btn {
+          font-size: 1rem;
+          padding: 1rem 1.5rem;
+        }
+
+        .tab-btn {
+          padding: 0.8rem 1rem;
+          font-size: 0.85rem;
+        }
+      }
+
+      .loader {
+        border: 6px solid rgba(255, 255, 255, 0.2);
+        border-top: 6px solid #ffffff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 📦 Container for buttons */
+      .left-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* 🔄 Regenerate Button Styling */
+      .left-btn {
+        background-color: #ffd700;
+        color: #760f33;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .left-btn:hover {
+        background-color: #e0c200;
+        transform: scale(1.05);
+      }
+
+      /* 🎤 Mic Button Next to Regenerate */
+      #micBtn {
+        width: 48px;
+        height: 48px;
+        background: #1f1f1f;
+        border: 2px solid #ffd700;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        animation: pulseGlow 2s infinite;
+        transition: background 0.3s ease, transform 0.2s ease;
+      }
+
+      #micBtn:hover {
+        background: #ffd700;
+        transform: scale(1.1);
+      }
+
+      .mic-icon {
+        width: 22px;
+        height: 22px;
+        fill: white;
+      }
+
+      #micBtn:hover .mic-icon {
+        fill: #000;
+      }
+
+      /* 🌟 Mic Glow Animation */
+      @keyframes pulseGlow {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6);
+        }
+        70% {
+          box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+        }
+      }
+
+      .project-history {
+        margin-top: 1.5rem;
+        padding: 10px 15px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+
+      .project-history h3 {
+        color: #facc15;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+      }
+
+      #historyList li {
+        padding: 6px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #eee;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      #historyList li:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-radius: 6px;
+      }
+      .project-history {
+        max-height: 180px; /* Allow vertical scroll */
+        overflow-y: auto; /* Enable scrolling */
+        padding: 20px;
+        background-color: #0c0c0c;
+        
+        
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #facc15;
+        font-size: 14px;
+        margin: 10 0;
+        margin-bottom: 40%;
+      }
+
+      /* Hide scrollbar for Webkit browsers */
+      .project-history::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+        background: transparent;
+      }
+
+      /* Optional: Hide scrollbar in Firefox */
+      .project-history {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;
+        background: transparent; /* IE/Edge */
+      }
+
+      .left-btn {
+  background-color: #facc15;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.left-btn:hover {
+  background-color: #eab308;
+}
+
+#fullPreviewModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.left-btn {
+  background-color: #1f1f1f;
+  color: white;
+  border: 1px solid #444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.left-btn:hover {
+  background-color: #333;
+}
+
+
+#fullPreviewOverlay {
+  width: 90%;
+  height: 90%;
+  position: relative;
+  background: #000;
+  border: 2px solid #facc15;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#closePreviewBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #facc15;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  z-index: 999;
+}
+
+#fullPreviewIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.loader {
+  margin: 0 auto;
+}
+
+    </style>
+  </head>
+  <body>
+
+   
+
+    <div class="app-container">
+      <!-- Full Preview Modal -->
+<div id="fullPreviewModal" style="display: none;">
+  <div id="fullPreviewOverlay">
+    <button id="closePreviewBtn" onclick="closeFullPreview()">❌ Close Preview</button>
+    <iframe id="fullPreviewIframe"></iframe>
+  </div>
+</div>
+
+      <div class="homepage" id="homepage">
+        <h1 class="main-title">Weburle – Build AI Websites Instantly ⚡</h1>
+        <p class="main-subtitle">
+          Type your idea and get a full website in seconds
+        </p>
+        <!-- 🧠 Webura Prompt Button -->
+        <div style="text-align: center; padding: 20px">
+          <a
+            href="./webura.html"
+            style="
+              background-color: #facc15;
+              color: black;
+              padding: 1rem 2rem;
+              border-radius: 10px;
+              font-size: 1.2rem;
+              font-weight: bold;
+              text-decoration: none;
+              box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+              transition: transform 0.2s ease;
+              display: inline-block;
+            "
+            onmouseover="this.style.transform='scale(1.05)'"
+            onmouseout="this.style.transform='scale(1)'"
+          >
+            🐳 Get Hints, Suggestions & Prompts through Webura
+          </a>
+        </div>
+
+        <div class="home-input-group">
+          <div class="home-input-container">
+            <input
+              type="text"
+              class="home-prompt-input"
+              id="mainPrompt"
+              placeholder="Describe your website idea..."
+            />
+            <button class="home-generate-btn" onclick="generateWebsite()">
+              Generate
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="split-view" id="splitView">
+        
+        <div class="left-panel" id="leftPanel">
+          
+          <div class="left-input-section">
+            
+            <!-- 🧠 Webura Prompt Button -->
+            <!-- 📜 Project History -->
+            <div class="project-history" id="projectHistory">
+              <h3 style="margin-top: 1rem">📁 Your Past Project</h3>
+              <ul
+                id="historyList"
+                style="list-style: none; padding: 0; color: #ddd"
+              ></ul>
+            </div>
+
+            <div style="text-align: center; padding: 20px">
+              <a
+                href="./webura.html"
+                style="
+                  background-color: #facc15;
+                  color: black;
+                  padding: 1rem 2rem;
+                  border-radius: 10px;
+                  font-size: 1.2rem;
+                  font-weight: bold;
+                  text-decoration: none;
+                  box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+                  transition: transform 0.2s ease;
+                  display: inline-block;
+                "
+                onmouseover="this.style.transform='scale(1.05)'"
+                onmouseout="this.style.transform='scale(1)'"
+              >
+                🐳 Get Hints, Suggestions & Prompts through Webura
+              </a>
+            </div>
+
+            <input
+              type="text"
+              class="left-prompt-input"
+              id="leftPrompt"
+              placeholder="Enter your website idea..."
+            />
+            <div class="left-buttons">
+              <button class="left-btni" onclick="regenerateWebsite()">
+                🔄generate
+              </button>
+              <!-- 🎤 ChatGPT-style Mic Button -->
+              <div id="micBtn" onclick="voiceInput()" title="Tap to Speak">
+                <svg viewBox="0 0 24 24" class="mic-icon">
+                  <path
+                    fill="currentColor"
+                    d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2Zm-5 9a7.002 7.002 0 0 0 6.93-6H18a5.978 5.978 0 0 1-1.35 3.37A6.015 6.015 0 0 1 12 20a6.015 6.015 0 0 1-4.65-2.63A5.978 5.978 0 0 1 6 14H5.07A7.002 7.002 0 0 0 12 20Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-panel" id="rightPanel">
+         <div class="tab-header">
+          <div style="text-align: center; margin-top: 1rem;">
+  <button onclick="goToHomepage()" style="
+    background-color: #40567a;
+    color: white;
+    padding: 0.4rem 0.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  ">
+  HOME
+  </button>
+</div>
+
+  <button class="tab-btn active" onclick="switchTab('preview')">👁 Preview</button>
+  <button class="tab-btn" onclick="switchTab('html')">🔤 HTML</button>
+  <button class="tab-btn" onclick="switchTab('css')">🎨 CSS</button>
+  <button class="tab-btn" onclick="switchTab('js')">🧠 JS</button>
+  <button class="left-btn" onclick="exportProject()">⬇️ Export Project</button>
+</div>
+
+ <div style="text-align: center; margin-top: 1rem;">
+  <button class="left-btn" onclick="openFullPreview()">🌐 Full Preview</button>
+</div>
+          <div class="tab-content">
+            <div class="tab-pane active" id="preview-pane">
+              <div class="preview-container" id="previewContainer">
+                <h1
+                  style="color: #333; text-align: center; margin-bottom: 2rem"
+                >
+                  Welcome to Weburle
+                </h1>
+                <p
+                  style="
+                    color: #666;
+                    text-align: center;
+                    font-size: 1.1rem;
+                    margin-bottom: 2rem;
+                  "
+                >
+                  Your AI-generated website will appear here after you enter a
+                  prompt and click Generate.
+                </p>
+                <div
+                  style="
+                    background: #f8f9fa;
+                    padding: 2rem;
+                    border-radius: 10px;
+                    text-align: center;
+                  "
+                >
+                  <h3 style="color: #333; margin-bottom: 1rem">Features:</h3>
+                  <ul style="list-style: none; padding: 0">
+                    <li style="padding: 0.5rem 0; color: #555">
+                      ✨ AI-powered website generation
+                    </li>
+                    <li style="padding: 0.5rem 0; color: #555">
+                      🎨 Modern responsive design
+                    </li>
+                    <li style="padding: 0.5rem 0; color: #555">
+                      ⚡ Instant code generation
+                    </li>
+                    <li style="padding: 0.5rem 0; color: #555">
+                      🔧 Customizable output
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+
+<div class="tab-pane" id="html-pane">
+  <div class="code-display" id="htmlCode">
+    <pre><code></code></pre>
+  </div>
+</div>
+
+<div class="tab-pane" id="css-pane">
+  <div class="code-display" id="cssCode">
+    <pre><code></code></pre>
+  </div>
+</div>
+
+<div class="tab-pane" id="js-pane">
+  <div class="code-display" id="jsCode">
+    <pre><code></code></pre>
+  </div>
+</div>
+
+
+  <!-- JSZip CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+
+ function openFullPreview() {
+  const html = document.getElementById("htmlCode").textContent || "";
+  const css = document.getElementById("cssCode").textContent || "";
+  const js = document.getElementById("jsCode").textContent || "";
+
+  const fullContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Full Preview</title>
+      <style>${css}</style>
+    </head>
+    <body>
+      ${html}
+      <script>${js}<\/script>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([fullContent], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+
+  document.getElementById("fullPreviewIframe").src = url;
+  document.getElementById("fullPreviewModal").style.display = "flex";
+}
+
+function closeFullPreview() {
+  document.getElementById("fullPreviewModal").style.display = "none";
+  document.getElementById("fullPreviewIframe").src = "";
+}
+
+
+window.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  const shouldGenerate = urlParams.get("generate");
+  if (shouldGenerate === "1") {
+    document.getElementById("homepage").classList.add("slide-out");
+    document.getElementById("splitView").classList.add("active");
+    document.getElementById("leftPanel").classList.add("visible");
+  }
+  loadProjectHistory();
+});
+
+let currentTab = "preview";
+
+function generateWebsite() {
+  const prompt = document.getElementById("mainPrompt").value.trim();
+  if (!prompt) return alert("Please enter your website idea!");
+
+  document.getElementById("leftPrompt").value = prompt;
+  document.getElementById("homepage").classList.add("slide-out");
+  document.getElementById("splitView").classList.add("active");
+
+  setTimeout(() => {
+    document.getElementById("leftPanel").classList.add("visible");
+
+    // ✅ Inject loader AFTER the DOM is ready
+   setTimeout(() => {
+  document.getElementById("leftPanel").classList.add("visible");
+
+  setTimeout(() => {
+    showLoadingScreen("🌐 Website is loading...");
+    updateContent(prompt);
+  }, 100);
+}, 1200);
+
+
+  }, 1200);
+}
+
+function regenerateWebsite() {
+  const prompt = document.getElementById("leftPrompt").value.trim();
+  if (!prompt) return alert("Please enter your website idea!");
+showLoadingScreen("🔄 Regenerating website...");
+updateContent(prompt);
+
+}
+
+function showLoadingScreen(message) {
+  const preview = document.getElementById("previewContainer");
+  if (preview) {
+    preview.innerHTML = `
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 2rem;
+        color: white;
+      ">
+        <div class="loader" style="
+          border: 6px solid rgba(255, 255, 255, 0.2);
+          border-top: 6px solid #ffffff;
+          border-radius: 50%;
+          width: 60px;
+          height: 60px;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        "></div>
+        <p style="font-size: 1.3rem; text-align: center;">${message}</p>
+      </div>
+    `;
+  }
+}
+
+
+
+
+async function updateContent(prompt) {
+  const previewContainer = document.getElementById("previewContainer");
+  
+
+  try {
+    const response = await fetch("http://localhost:3000/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (!response.ok) throw new Error("Server error");
+
+    const data = await response.json();
+
+   document.querySelector("#htmlCode code").textContent = data.html || "";
+document.querySelector("#cssCode code").textContent = data.css || "";
+document.querySelector("#jsCode code").textContent = data.js || "";
+
+    saveProjectToHistory({ prompt, html: data.html, css: data.css, js: data.js });
+
+    const fullPage = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Generated Site</title>
+        <style>${data.css || ""}</style>
+      </head>
+      <body>
+        ${data.html || ""}
+        <script>${data.js || ""}<\/script>
+      </body>
+      </html>
+    `;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.srcdoc = fullPage;
+
+    previewContainer.innerHTML = "";
+    previewContainer.appendChild(iframe);
+
+    loadProjectHistory();
+  } catch (err) {
+    console.error(err);
+    previewContainer.innerHTML = `<p style="color:red;text-align:center;">❌ Generation failed</p>`;
+  }
+}
+
+function saveProjectToHistory(project) {
+  let history = JSON.parse(localStorage.getItem("weburleProjects")) || [];
+  history.unshift(project);
+  if (history.length > 5) history.pop();
+  localStorage.setItem("weburleProjects", JSON.stringify(history));
+}
+
+function loadProjectHistory() {
+  const container = document.getElementById("projectHistory");
+  if (!container) return;
+
+  const history = JSON.parse(localStorage.getItem("weburleProjects")) || [];
+  container.innerHTML = "";
+
+  history.forEach((proj, index) => {
+    const shortPrompt = proj.prompt.length > 60 ? proj.prompt.slice(0, 60) + "..." : proj.prompt;
+    const div = document.createElement("div");
+    div.className = "project-history-item";
+    div.innerHTML = `
+      <strong title="${proj.prompt}" style="color: #facc15;">${shortPrompt}</strong><br/>
+      <button style="margin-top: 4px;" onclick="loadSavedProject(${index})">🔁 Load Project</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function loadSavedProject(index) {
+  const history = JSON.parse(localStorage.getItem("weburleProjects")) || [];
+  const proj = history[index];
+  if (!proj) return alert("Project not found!");
+
+  document.getElementById("leftPrompt").value = proj.prompt;
+  document.getElementById("htmlCode").textContent = proj.html || "";
+  document.getElementById("cssCode").textContent = proj.css || "";
+  document.getElementById("jsCode").textContent = proj.js || "";
+
+  const fullPage = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Restored</title>
+      <style>${proj.css || ""}</style>
+    </head>
+    <body>
+      ${proj.html || ""}
+      <script>${proj.js || ""}<\/script>
+    </body>
+    </html>
+  `;
+
+  const iframe = document.createElement("iframe");
+  iframe.style.width = "100%";
+  iframe.style.height = "100%";
+  iframe.style.border = "none";
+  iframe.srcdoc = fullPage;
+
+  document.getElementById("previewContainer").innerHTML = "";
+  document.getElementById("previewContainer").appendChild(iframe);
+}
+
+// EXPORT ZIP FUNCTION
+async function exportProject() {
+  const html = document.getElementById("htmlCode").textContent || "";
+  const css = document.getElementById("cssCode").textContent || "";
+  const js = document.getElementById("jsCode").textContent || "";
+
+  const zip = new JSZip();
+  zip.file("index.html", html);
+  zip.file("style.css", css);
+  zip.file("script.js", js);
+
+  const content = await zip.generateAsync({ type: "blob" });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(content);
+  link.download = "weburle-project.zip";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ENTER KEY FUNCTIONALITY
+document.getElementById("mainPrompt").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") generateWebsite();
+});
+document.getElementById("leftPrompt").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") regenerateWebsite();
+});
+
+function switchTab(tabName) {
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.remove("active");
+  });
+  document.querySelectorAll(".tab-pane").forEach((pane) => {
+    pane.classList.remove("active");
+  });
+
+  document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add("active");
+  document.getElementById(`${tabName}-pane`).classList.add("active");
+}
+
+function goToHomepage() {
+  window.location.href = "fake.html";
+}
+
+</script>
+
+  </body>
+</html>
