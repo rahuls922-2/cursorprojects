@@ -1,8 +1,11 @@
 {
   "name": "cursor_projects",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node webchat.cjs",
+    "dev": "nodemon webchat.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,5 +26,7 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0"
   },
-  "description": ""
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
 }
