@@ -848,7 +848,15 @@
 
 <script>
 
- function openFullPreview() {
+// ✅ Detect local vs deployed
+function getAPIBaseURL() {
+  const isLocal = window.location.hostname === "localhost";
+  return isLocal
+    ? "http://localhost:3000/api/generate"
+    : "https://cursorprojects-1.onrender.com/api/generate";
+}
+
+function openFullPreview() {
   const html = document.getElementById("htmlCode").textContent || "";
   const css = document.getElementById("cssCode").textContent || "";
   const js = document.getElementById("jsCode").textContent || "";
@@ -881,7 +889,6 @@ function closeFullPreview() {
   document.getElementById("fullPreviewIframe").src = "";
 }
 
-
 window.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const shouldGenerate = urlParams.get("generate");
@@ -906,16 +913,10 @@ function generateWebsite() {
   setTimeout(() => {
     document.getElementById("leftPanel").classList.add("visible");
 
-    // ✅ Inject loader AFTER the DOM is ready
-   setTimeout(() => {
-  document.getElementById("leftPanel").classList.add("visible");
-
-  setTimeout(() => {
-    showLoadingScreen("🌐 Website is loading...");
-    updateContent(prompt);
-  }, 100);
-}, 1200);
-
+    setTimeout(() => {
+      showLoadingScreen("🌐 Website is loading...");
+      updateContent(prompt);
+    }, 100);
 
   }, 1200);
 }
@@ -923,9 +924,8 @@ function generateWebsite() {
 function regenerateWebsite() {
   const prompt = document.getElementById("leftPrompt").value.trim();
   if (!prompt) return alert("Please enter your website idea!");
-showLoadingScreen("🔄 Regenerating website...");
-updateContent(prompt);
-
+  showLoadingScreen("🔄 Regenerating website...");
+  updateContent(prompt);
 }
 
 function showLoadingScreen(message) {
@@ -956,15 +956,11 @@ function showLoadingScreen(message) {
   }
 }
 
-
-
-
 async function updateContent(prompt) {
   const previewContainer = document.getElementById("previewContainer");
-  
 
   try {
-    const response = await fetch("http://localhost:3000/api/generate", {
+    const response = await fetch(getAPIBaseURL(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt }),
@@ -974,9 +970,9 @@ async function updateContent(prompt) {
 
     const data = await response.json();
 
-   document.querySelector("#htmlCode code").textContent = data.html || "";
-document.querySelector("#cssCode code").textContent = data.css || "";
-document.querySelector("#jsCode code").textContent = data.js || "";
+    document.querySelector("#htmlCode code").textContent = data.html || "";
+    document.querySelector("#cssCode code").textContent = data.css || "";
+    document.querySelector("#jsCode code").textContent = data.js || "";
 
     saveProjectToHistory({ prompt, html: data.html, css: data.css, js: data.js });
 
@@ -1116,10 +1112,11 @@ function switchTab(tabName) {
 }
 
 function goToHomepage() {
-  window.location.href = "fake.html";
+  window.location.href = "index.html";
 }
 
 </script>
+
 
   </body>
 </html>

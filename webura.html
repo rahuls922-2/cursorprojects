@@ -233,36 +233,71 @@
     </div>
   </div>
 
-  <script>
-    async function sendChat() {
-      const input = document.getElementById("chatInput");
-      const value = input.value.trim();
-      if (!value) return;
+ <script>
+  // ✅ Smart API switch (local vs render)
+  const getChatAPI = () => {
+    const isLocal = window.location.hostname === "localhost";
+    return isLocal
+      ? "http://localhost:4000/api/webura"
+      : "https://cursorprojects-1.onrender.com/api/webura";
+  };
 
-      appendMessage("user", value);
-      input.value = "";
+  async function sendChat() {
+    const input = document.getElementById("chatInput");
+    const value = input.value.trim();
+    if (!value) return;
 
-      try {
-        const response = await fetch("http://localhost:4000/api/webura", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: value })
-        });
+    appendMessage("user", value);
+    input.value = "";
 
-        const data = await response.json();
-        typeWriterMessage("bot", data.reply || "(No response from Webura)");
-      } catch (err) {
-        typeWriterMessage("bot", "❌ Failed to reach Webura server.");
-      }
+    try {
+      const response = await fetch(getChatAPI(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: value })
+      });
+
+      const data = await response.json();
+      typeWriterMessage("bot", data.reply || "(No response from Webura)");
+    } catch (err) {
+      typeWriterMessage("bot", "❌ Failed to reach Webura server.");
+    }
+  }
+
+  function appendMessage(role, text) {
+    const container = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = `message ${role}`;
+    div.textContent = text;
+
+    if (role === "bot") {
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "copy-btn";
+      copyBtn.textContent = "📋";
+      copyBtn.onclick = function () {
+        navigator.clipboard.writeText(text);
+      };
+      div.appendChild(copyBtn);
     }
 
-    function appendMessage(role, text) {
-      const container = document.getElementById("chatMessages");
-      const div = document.createElement("div");
-      div.className = `message ${role}`;
-      div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
 
-      if (role === "bot") {
+  function typeWriterMessage(role, text) {
+    const container = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = `message ${role}`;
+    container.appendChild(div);
+
+    let index = 0;
+    function typeNextChar() {
+      if (index < text.length) {
+        div.textContent += text.charAt(index);
+        index++;
+        container.scrollTop = container.scrollHeight;
+        setTimeout(typeNextChar, 20);
+      } else {
         const copyBtn = document.createElement("button");
         copyBtn.className = "copy-btn";
         copyBtn.textContent = "📋";
@@ -271,78 +306,52 @@
         };
         div.appendChild(copyBtn);
       }
-
-      container.appendChild(div);
-      container.scrollTop = container.scrollHeight;
     }
+    typeNextChar();
+  }
 
-    function typeWriterMessage(role, text) {
-      const container = document.getElementById("chatMessages");
-      const div = document.createElement("div");
-      div.className = `message ${role}`;
-      container.appendChild(div);
+  function copyToClipboard(btn) {
+    const text = btn.parentElement.textContent.trim();
+    navigator.clipboard.writeText(text.replace("📋", "").trim());
+  }
 
-      let index = 0;
-      function typeNextChar() {
-        if (index < text.length) {
-          div.textContent += text.charAt(index);
-          index++;
-          container.scrollTop = container.scrollHeight;
-          setTimeout(typeNextChar, 20);
-        } else {
-          const copyBtn = document.createElement("button");
-          copyBtn.className = "copy-btn";
-          copyBtn.textContent = "📋";
-          copyBtn.onclick = function () {
-            navigator.clipboard.writeText(text);
-          };
-          div.appendChild(copyBtn);
-        }
-      }
-      typeNextChar();
+  function voiceInput() {
+    const micBtn = document.getElementById("micIcon");
+
+    if ("webkitSpeechRecognition" in window) {
+      const recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "en-US";
+
+      recognition.onstart = function () {
+        micBtn.classList.add("listening");
+      };
+
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("chatInput").value = transcript;
+        sendChat(); // 🔥 Auto-send
+      };
+
+      recognition.onerror = function (event) {
+        alert("Voice recognition error: " + event.error);
+      };
+
+      recognition.onend = function () {
+        micBtn.classList.remove("listening");
+      };
+
+      recognition.start();
+    } else {
+      alert("Voice recognition not supported in this browser");
     }
+  }
 
-    function copyToClipboard(btn) {
-      const text = btn.parentElement.textContent.trim();
-      navigator.clipboard.writeText(text.replace("📋", "").trim());
-    }
+  document.getElementById("chatInput").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") sendChat();
+  });
+</script>
 
-    function voiceInput() {
-      const micBtn = document.getElementById("micIcon");
-
-      if ("webkitSpeechRecognition" in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
-
-        recognition.onstart = function () {
-          micBtn.classList.add("listening");
-        };
-
-        recognition.onresult = function (event) {
-          const transcript = event.results[0][0].transcript;
-          document.getElementById("chatInput").value = transcript;
-          sendChat(); // 🔥 Auto-send
-        };
-
-        recognition.onerror = function (event) {
-          alert("Voice recognition error: " + event.error);
-        };
-
-        recognition.onend = function () {
-          micBtn.classList.remove("listening");
-        };
-
-        recognition.start();
-      } else {
-        alert("Voice recognition not supported in this browser");
-      }
-    }
-
-    document.getElementById("chatInput").addEventListener("keypress", function (e) {
-      if (e.key === "Enter") sendChat();
-    });
-  </script>
 </body>
 </html>
