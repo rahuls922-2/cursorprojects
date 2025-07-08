@@ -149,6 +149,7 @@
   100% { transform: rotate(360deg); }
 }
 
+
       .home-prompt-input {
         flex: 1;
         padding: 1.2rem 1.8rem;
@@ -410,24 +411,33 @@
         }
       }
 
-      .loader {
-        border: 6px solid rgba(255, 255, 255, 0.2);
-        border-top: 6px solid #ffffff;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
+     @keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.loader {
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  border-top: 6px solid #ffffff;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+.loader-text {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  color: white;
+  text-align: center;
+}
+.loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  color: white;
+}
 
       /* 📦 Container for buttons */
       .left-buttons {
@@ -627,9 +637,7 @@
   border: none;
 }
 
-.loader {
-  margin: 0 auto;
-}
+
 
     </style>
   </head>
@@ -916,18 +924,22 @@ function generateWebsite() {
 
     setTimeout(() => {
       showLoadingScreen("🌐 Website is loading...");
-      updateContent(prompt);
+      setTimeout(() => {
+        updateContent(prompt); // <-- Give DOM time to render loader
+      }, 100); // even 50ms is enough to force re-render
     }, 100);
-
   }, 1200);
 }
 
 function regenerateWebsite() {
   const prompt = document.getElementById("leftPrompt").value.trim();
   if (!prompt) return alert("Please enter your website idea!");
+
+  // ✅ Spinner for regenerate
   showLoadingScreen("🔄 Regenerating website...");
   updateContent(prompt);
 }
+
 
 function showLoadingScreen(message) {
   const preview = document.getElementById("previewContainer");
@@ -960,6 +972,14 @@ function showLoadingScreen(message) {
 async function updateContent(prompt) {
   const previewContainer = document.getElementById("previewContainer");
 
+  // ✅ STEP 1: Show loader before making request
+  previewContainer.innerHTML = `
+    <div class="loader-wrapper">
+      <div class="loader"></div>
+      <p class="loader-text">🌐 Website is generating...</p>
+    </div>
+  `;
+
   try {
     const response = await fetch(getAPIBaseURL(), {
       method: "POST",
@@ -971,12 +991,14 @@ async function updateContent(prompt) {
 
     const data = await response.json();
 
+    // STEP 2: Update code tabs
     document.querySelector("#htmlCode code").textContent = data.html || "";
     document.querySelector("#cssCode code").textContent = data.css || "";
     document.querySelector("#jsCode code").textContent = data.js || "";
 
     saveProjectToHistory({ prompt, html: data.html, css: data.css, js: data.js });
 
+    // STEP 3: Prepare iframe with generated content
     const fullPage = `
       <!DOCTYPE html>
       <html lang="en">
@@ -999,8 +1021,11 @@ async function updateContent(prompt) {
     iframe.style.border = "none";
     iframe.srcdoc = fullPage;
 
-    previewContainer.innerHTML = "";
-    previewContainer.appendChild(iframe);
+    // ✅ STEP 4: Replace loader with iframe after short delay
+    setTimeout(() => {
+      previewContainer.innerHTML = "";
+      previewContainer.appendChild(iframe);
+    }, 300); // delay to allow spinner to be seen for a moment
 
     loadProjectHistory();
   } catch (err) {
@@ -1115,6 +1140,19 @@ function switchTab(tabName) {
 function goToHomepage() {
   window.location.href = "index.html";
 }
+
+function showTestLoader() {
+  const preview = document.getElementById("previewContainer");
+  preview.style.background = "#0f172a"; // dark bg for visibility
+  preview.innerHTML = `
+    <div class="loader-wrapper">
+      <div class="loader"></div>
+      <p class="loader-text">🌐 Generating website...</p>
+    </div>
+  `;
+}
+
+showTestLoader();
 
 </script>
 
